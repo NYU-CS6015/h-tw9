@@ -1,26 +1,57 @@
 <?php
+class User extends AppModel{
+    var $name = 'User';
+    public $useTable = 'users';
 
-namespace App;
 
-use Illuminate\Foundation\Auth\User as Authenticatable;
+    public $validate = array(
 
-class User extends Authenticatable
-{
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array
-     */
-    protected $fillable = [
-        'name', 'email', 'password',
-    ];
 
-    /**
-     * The attributes that should be hidden for arrays.
-     *
-     * @var array
-     */
-    protected $hidden = [
-        'password', 'remember_token',
-    ];
+        'pwd' => array(
+            'length' => array(
+                'rule' => array('minLength', 6),
+                'message' => 'Minimum 6 character long.'
+            ),
+            'Match passsword' => array(
+                'rule' => 'matchPasswords',
+                'message' => 'Your passwords do not match.'
+            )
+        ),
+
+
+        'email' => array(
+            'email' => array('rule' => 'email',
+                'message' => 'Enter valid email id.'),
+
+            'unique' => array('rule' => 'isUnique',
+                'on' => 'create',
+                'message' => 'This email-id already registered.'
+            ),
+            'empty' => array('rule' => 'notEmpty',
+                'message' => 'Cannot left blank'
+            )
+
+        )
+
+
+    );
+
+
+    public function matchPasswords($data){
+        if($data['password'] == $this->data['User']['Re-type Password']){
+            return true;
+        }
+        $this->invalidate('Re-type Password', 'Your password donot match');
+        return false;
+    }
+
+    public function beforeSave($options = array()) {
+        /* password hashing */
+        if (isset($this->data[$this->alias]['password'])) {
+            $this->data[$this->alias]['password'] = AuthComponent::password($this->data[$this->alias]['password']);
+        }
+    }
+
 }
+
+?>
